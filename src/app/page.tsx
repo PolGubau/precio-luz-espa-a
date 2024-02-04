@@ -243,6 +243,11 @@ export default async function Home() {
   const maxPrice = Math.max(...arrayzedData.map((hour) => hour.price));
   const minPrice = Math.min(...arrayzedData.map((hour) => hour.price));
 
+  const cheapestHour = arrayzedData.find((hour) => hour.price === minPrice);
+  const mostExpensiveHour = arrayzedData.find(
+    (hour) => hour.price === maxPrice
+  );
+
   const avgPrice = Math.round(
     arrayzedData.reduce((acc, hour) => acc + hour.price, 0) /
       arrayzedData.length
@@ -256,7 +261,7 @@ export default async function Home() {
         <ul className="flex gap-2 flex-wrap items-center justify-center">
           <li className="bg-yellow-100 rounded-full px-3 py-1 w-fit flex gap-1">
             <span className="hidden sm:flex">Precio</span>
-            Mínimo: {minPrice}€
+            Mínimo: {minPrice}€ ({cheapestHour?.hour}h)
           </li>
           <li className="bg-orange-100 rounded-full px-3 py-1 w-fit flex gap-1">
             <span className="hidden sm:flex">Precio</span>
@@ -264,7 +269,7 @@ export default async function Home() {
           </li>
           <li className="bg-red-100 rounded-full px-3 py-1 w-fit flex gap-1">
             <span className="hidden sm:flex">Precio</span>
-            Máximo: {maxPrice}€
+            Máximo: {maxPrice}€ ({mostExpensiveHour?.hour}h)
           </li>
         </ul>
       </header>

@@ -18,11 +18,9 @@ async function getData() {
   const res = await fetch(
     "https://api.preciodelaluz.org/v1/prices/all?zone=PCB"
   );
-
   if (!res.ok) {
     throw new Error("Failed to fetch data");
   }
-
   return res.json();
 }
 export default async function Home() {
@@ -45,7 +43,7 @@ export default async function Home() {
   return (
     <main className="flex min-h-screen flex-col gap-6 items-center justify-between p-6 text-center">
       <header className="flex flex-col gap-3 justify-center items-center">
-        <h1 className="text-2xl md:text-3xl font-bold text-cyan-800">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
           Precio de la luz {arrayzedData[0].date}
         </h1>
         <ul className="flex gap-2 flex-wrap items-center justify-center">

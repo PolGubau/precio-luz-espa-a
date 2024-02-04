@@ -269,7 +269,7 @@ export default async function Home() {
         </ul>
       </header>
 
-      <ul className="flex flex-col w-full gap-1">
+      <ul className="flex flex-col w-full gap-1 md:max-w-xl">
         {arrayzedData.map((hour) => {
           const isCheap = hour["is-cheap"];
 

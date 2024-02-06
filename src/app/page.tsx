@@ -21,8 +21,10 @@ async function getData() {
   if (!res.ok) {
     throw new Error("Failed to fetch data");
   }
-  console.log(res.json());
-  return res.json();
+
+  const json = await res.json();
+  console.log(json);
+  return json;
 }
 export default async function Home() {
   const data = await getData();

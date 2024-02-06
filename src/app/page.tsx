@@ -16,14 +16,14 @@ type Data = {
 
 async function getData() {
   const res = await fetch(
-    "https://api.preciodelaluz.org/v1/prices/all?zone=PCB"
+    "https://api.preciodelaluz.org/v1/prices/all?zone=PCB",
+    { next: { revalidate: 3600 } }
   );
   if (!res.ok) {
     throw new Error("Failed to fetch data");
   }
 
   const json = await res.json();
-  console.log(json);
   return json;
 }
 export default async function Home() {

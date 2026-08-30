@@ -1,2 +1,4 @@
 allowBuilds:
   unrs-resolver: true
+minimumReleaseAgeExclude:
+  - '@doscientos/ui@0.1.25'

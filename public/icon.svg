@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">Precio Luz</title>
+  <rect width="512" height="512" rx="112" fill="#0f172a"/>
+  <path d="M286 54 126 282h112l-12 176 160-232H274l12-172Z" fill="#facc15"/>
+</svg>

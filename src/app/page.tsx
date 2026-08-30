@@ -1,108 +1,69 @@
-import { TbClock } from "react-icons/tb";
+import { PriceDashboard } from "@/components/price-dashboard";
+import { normalizeReePrices } from "@/lib/prices";
+import { unstable_cache } from "next/cache";
 
-interface HourData {
-  date: string;
-  hour: string;
-  "is-cheap": boolean;
-  "is-under-avg": boolean;
-  market: string;
-  price: number;
-  units: string;
-}
+export const dynamic = "force-dynamic";
 
-type Data = {
-  [key: string]: HourData;
-};
+function getMadridDate() {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone: "Europe/Madrid",
+    year: "numeric",
+  }).formatToParts(new Date());
+  const getPart = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value;
+  const day = getPart("day");
+  const month = getPart("month");
+  const year = getPart("year");
 
-async function getData() {
-  const res = await fetch(
-    "https://api.preciodelaluz.org/v1/prices/all?zone=PCB",
-    { next: { revalidate: 3600 } }
-  );
-  if (!res.ok) {
-    throw new Error("Failed to fetch data");
+  if (!day || !month || !year) {
+    throw new Error("No se ha podido calcular la fecha actual.");
   }
 
-  const json = await res.json();
-  return json;
+  return `${year}-${month}-${day}`;
 }
+
+async function fetchPrices(date: string) {
+  const searchParams = new URLSearchParams({
+    end_date: `${date}T23:59`,
+    geo_ids: "8741",
+    start_date: `${date}T00:00`,
+    time_trunc: "hour",
+  });
+  const response = await fetch(
+    `https://apidatos.ree.es/es/datos/mercados/precios-mercados-tiempo-real?${searchParams}`,
+    { next: { revalidate: 900 } }
+  );
+
+  if (!response.ok) {
+    throw new Error("No se han podido obtener los precios.");
+  }
+
+  return normalizeReePrices(await response.json());
+}
+
+const getPrices = unstable_cache(fetchPrices, ["pvpc-prices-pcb"], {
+  revalidate: 900,
+});
+
 export default async function Home() {
-  const data = await getData();
+  const todayDate = getMadridDate();
+  const prices = await getPrices(todayDate);
+  const currentHour = new Intl.DateTimeFormat("en-GB", {
+    hour: "2-digit",
+    hourCycle: "h23",
+    timeZone: "Europe/Madrid",
+  }).format(new Date());
+  const dataDate = prices[0].date;
+  const savedAt = new Date().toISOString();
 
-  const arrayzedData = Object.keys(data).map((key) => data[key as keyof Data]);
-
-  const maxPrice = Math.max(...arrayzedData.map((hour) => hour.price));
-  const minPrice = Math.min(...arrayzedData.map((hour) => hour.price));
-
-  const cheapestHour = arrayzedData.find((hour) => hour.price === minPrice);
-  const mostExpensiveHour = arrayzedData.find(
-    (hour) => hour.price === maxPrice
-  );
-
-  const avgPrice = Math.round(
-    arrayzedData.reduce((acc, hour) => acc + hour.price, 0) /
-      arrayzedData.length
-  );
   return (
-    <main className="flex min-h-screen flex-col gap-6 items-center justify-between p-6 text-center">
-      <header className="flex flex-col gap-3 justify-center items-center">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-          Precio de la luz {arrayzedData[0].date}
-        </h1>
-        <ul className="flex gap-2 flex-wrap items-center justify-center">
-          <li className="bg-yellow-100 rounded-full px-3 py-1 w-fit flex gap-1">
-            <span className="hidden sm:flex">Precio</span>
-            Mínimo: {minPrice}€ ({cheapestHour?.hour}h)
-          </li>
-          <li className="bg-orange-100 rounded-full px-3 py-1 w-fit flex gap-1">
-            <span className="hidden sm:flex">Precio</span>
-            Medio: {avgPrice}€
-          </li>
-          <li className="bg-red-100 rounded-full px-3 py-1 w-fit flex gap-1">
-            <span className="hidden sm:flex">Precio</span>
-            Máximo: {maxPrice}€ ({mostExpensiveHour?.hour}h)
-          </li>
-        </ul>
-      </header>
-
-      <ul className="flex flex-col w-full gap-1 md:max-w-xl">
-        {arrayzedData.map((hour) => {
-          const isCheap = hour["is-cheap"];
-
-          // Background color based on price scale from min to max, the min price will be green and the max price will be red
-          const priceScale = (hour.price - minPrice) / (maxPrice - minPrice);
-          const bgColor = `rgba(${255 * priceScale}, ${
-            255 * (1 - priceScale)
-          }, 0, 0.5)`;
-
-          return (
-            <li
-              key={hour.hour}
-              style={{ backgroundColor: bgColor }}
-              className="rounded-xl p-2 flex gap-4 items-center justify-between "
-            >
-              <div className="flex justify-start items-center gap-4">
-                <header className="flex gap-1 items-center">
-                  <TbClock size={20} />
-                  <h1 className="text-lg sm:text-2xl">{hour.hour}</h1>
-                </header>
-                {isCheap && (
-                  <span className="bg-green-400 text-green-800 rounded-xl px-3 py-1">
-                    Barato
-                  </span>
-                )}
-              </div>
-              <h2>
-                <span className="font-bold text-lg sm:text-2xl">
-                  {" "}
-                  {hour.price}
-                </span>
-                {hour.units}
-              </h2>
-            </li>
-          );
-        })}
-      </ul>
-    </main>
+    <PriceDashboard
+      currentHour={currentHour}
+      dataDate={dataDate}
+      prices={prices}
+      savedAt={savedAt}
+    />
   );
 }

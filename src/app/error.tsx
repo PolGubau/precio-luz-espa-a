@@ -1,6 +1,6 @@
-"use client"; // Error components must be Client Components
+"use client";
 
-import { Button } from "pol-ui";
+import { Button } from "@doscientos/ui";
 import { useEffect } from "react";
 
 export default function ErrorBound({
@@ -11,21 +11,18 @@ export default function ErrorBound({
   reset: () => void;
 }>) {
   useEffect(() => {
-    // Log the error to an error reporting service
     console.error(error);
   }, [error]);
 
   return (
-    <div className=" flex flex-col gap-6 ">
-      <h2>Precios actualizándose</h2>
-      <Button
-        onClick={
-          // Attempt to recover by trying to re-render the segment
-          () => reset()
-        }
-      >
-        Volver a probar
-      </Button>
-    </div>
+    <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col items-start justify-center gap-4 p-6">
+      <h1 className="text-2xl font-bold text-slate-900">
+        No hemos podido cargar los precios
+      </h1>
+      <p className="text-slate-600">
+        Comprueba tu conexión e inténtalo de nuevo en unos instantes.
+      </p>
+      <Button onPress={reset}>Volver a probar</Button>
+    </main>
   );
 }
